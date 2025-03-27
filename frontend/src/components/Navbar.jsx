@@ -27,8 +27,11 @@ const Navbar = () => {
                   <FiEdit className="mr-1" />
                   New Post
                 </Link>
-                <Link to="/my-posts" className="flex items-center text-gray-700 hover:text-primary-600">
-                  My Posts
+                <Link
+                  to="/dashboard"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
                 </Link>
                 <button
                   onClick={logout}
