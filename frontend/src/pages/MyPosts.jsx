@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { posts } from '../services/api';
 import PostCard from '../components/posts/PostCard';
+import { posts } from '../services/api';
 
 const MyPosts = () => {
   const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: userPosts, isLoading, error } = useQuery({
+  const { data: myPosts, isLoading } = useQuery({
     queryKey: ['my-posts'],
     queryFn: posts.getMyPosts,
   });
@@ -15,7 +17,6 @@ const MyPosts = () => {
     mutationFn: posts.delete,
     onSuccess: () => {
       queryClient.invalidateQueries(['my-posts']);
-      queryClient.invalidateQueries(['posts']);
       toast.success('Post deleted successfully!');
     },
     onError: (error) => {
@@ -25,7 +26,12 @@ const MyPosts = () => {
 
   const handleDelete = async (postId) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
-      await deletePostMutation.mutateAsync(postId);
+      setIsDeleting(true);
+      try {
+        await deletePostMutation.mutateAsync(postId);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -37,27 +43,20 @@ const MyPosts = () => {
     );
   }
 
-  if (error) {
+  if (!myPosts?.length) {
     return (
-      <div className="text-center text-red-600">
-        Error loading your posts. Please try again later.
-      </div>
-    );
-  }
-
-  if (!userPosts?.length) {
-    return (
-      <div className="text-center text-gray-600">
-        You haven't created any posts yet. Create your first post!
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">No posts yet</h2>
+        <p className="text-gray-600">Create your first post to get started!</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">My Posts</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-gray-900">My Posts</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {userPosts.map((post) => (
+        {myPosts.map((post) => (
           <PostCard
             key={post._id}
             post={post}
